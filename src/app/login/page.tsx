@@ -1,10 +1,12 @@
 "use client";
+import { loginUser } from "@/utils/actions/loginUser";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
-type FormValues = {
+export type FormValues = {
   email: string;
   password: string;
 };
@@ -16,8 +18,23 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm<FormValues>();
 
+  const router = useRouter()
+
   const onSubmit = async (data: FormValues) => {
     console.log(data);
+    try {
+      const res = await loginUser(data);
+    
+        if(res.accessToken){
+          alert(res.message)
+          localStorage.setItem('accessToken',res.accessToken);
+          router.push('/')
+        };
+      
+    } catch (err: any) {
+      console.error(err.message);
+      throw new Error(err.message);
+    }
   };
 
   return (
@@ -78,7 +95,9 @@ const LoginPage = () => {
           </form>
           <p className="text-center">Or Sign Up Using</p>
           <div className="flex justify-center mb-10 mt-2">
-            <button className="btn btn-circle ">
+            <button className="btn btn-circle" onClick={()=>signIn('google',{
+              callbackUrl: "http://localhost:3000/dashboard"
+            })}>
               <Image
                 src="https://www.freepnglogos.com/uploads/google-logo-png/google-logo-png-webinar-optimizing-for-success-google-business-webinar-13.png"
                 width={50}
